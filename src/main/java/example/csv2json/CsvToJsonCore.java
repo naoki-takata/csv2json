@@ -20,19 +20,18 @@ import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 
-/** CSV→JSON 変換の共通ロジック（CLIから呼び出し） */
 public class CsvToJsonCore {
 
     public static class Options {
         public char delimiter = ',';
         public char quoteChar = '"';
         public char escapeChar = '\\';
-        public boolean hasHeader = true;          // 先頭行をヘッダーとみなす
-        public boolean ndjson = false;            // 行ごとに1 JSON（配列ではなく）
-        public boolean pretty = true;             // 整形出力
-        public boolean trim = true;               // 各セルをtrim
-        public boolean skipEmptyLines = true;     // 空行スキップ
-        public String nullValue = "";             // この文字列を null に解釈（完全一致時）
+        public boolean hasHeader = true;
+        public boolean ndjson = false;
+        public boolean pretty = true;
+        public boolean trim = true;
+        public boolean skipEmptyLines = true;
+        public String nullValue = "";
     }
 
     public static void convert(Reader in, Writer out, Options opt) throws IOException {
@@ -55,14 +54,18 @@ public class CsvToJsonCore {
         try {
             if (opt.hasHeader) {
                 headers = reader.readNext();
-                if (headers == null) headers = new String[0];
-                if (opt.trim) trimArray(headers);
+                if (headers == null)
+                    headers = new String[0];
+                if (opt.trim)
+                    trimArray(headers);
             }
 
             String[] line;
             while ((line = reader.readNext()) != null) {
-                if (opt.trim) trimArray(line);
-                if (opt.skipEmptyLines && isAllEmpty(line)) continue;
+                if (opt.trim)
+                    trimArray(line);
+                if (opt.skipEmptyLines && isAllEmpty(line))
+                    continue;
 
                 if (!opt.hasHeader && headers == null) {
                     headers = genDefaultHeaders(line.length);
@@ -76,7 +79,6 @@ public class CsvToJsonCore {
                 }
 
                 if (opt.ndjson) {
-                    // 1行ずつ書き出す
                     mapper.writeValue(out, obj);
                     out.write(System.lineSeparator());
                 } else {
@@ -86,7 +88,10 @@ public class CsvToJsonCore {
         } catch (Exception e) {
             throw new IOException("CSV parsing error: " + e.getMessage(), e);
         } finally {
-            try { reader.close(); } catch (Exception ignore) {}
+            try {
+                reader.close();
+            } catch (Exception ignore) {
+            }
         }
 
         if (!opt.ndjson) {
@@ -98,7 +103,8 @@ public class CsvToJsonCore {
 
     private static String[] genDefaultHeaders(int n) {
         String[] h = new String[n];
-        for (int i = 0; i < n; i++) h[i] = "column_" + (i + 1);
+        for (int i = 0; i < n; i++)
+            h[i] = "column_" + (i + 1);
         return h;
     }
 
@@ -110,30 +116,36 @@ public class CsvToJsonCore {
 
     private static boolean isAllEmpty(String[] arr) {
         for (String s : arr) {
-            if (s != null && !s.isBlank()) return false;
+            if (s != null && !s.isBlank())
+                return false;
         }
         return true;
     }
 
     private static Object toValue(String s, String nullToken) {
-        if (s == null) return null;
-        if (!nullToken.isEmpty() && s.equals(nullToken)) return null;
-        // 数値っぽいものを数値に（整数/小数）
+        if (s == null)
+            return null;
+        if (!nullToken.isEmpty() && s.equals(nullToken))
+            return null;
         try {
-            if (s.matches("^-?\\d+$")) return Long.parseLong(s);
-            if (s.matches("^-?\\d*\\.\\d+$")) return Double.parseDouble(s);
-        } catch (NumberFormatException ignored) {}
+            if (s.matches("^-?\\d+$"))
+                return Long.parseLong(s);
+            if (s.matches("^-?\\d*\\.\\d+$"))
+                return Double.parseDouble(s);
+        } catch (NumberFormatException ignored) {
+        }
         return s;
     }
 
-    /** 便利メソッド：ファイル/標準入出力を作る */
     public static Reader openReader(String path, Charset cs) throws IOException {
-        if ("-".equals(path)) return new InputStreamReader(System.in, cs);
+        if ("-".equals(path))
+            return new InputStreamReader(System.in, cs);
         return new InputStreamReader(new FileInputStream(path), cs);
     }
 
     public static Writer openWriter(String path, Charset cs) throws IOException {
-        if ("-".equals(path)) return new OutputStreamWriter(System.out, cs);
+        if ("-".equals(path))
+            return new OutputStreamWriter(System.out, cs);
         return new OutputStreamWriter(new FileOutputStream(path), cs);
     }
 }
